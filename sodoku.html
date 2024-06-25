@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        #sudoku-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #sudoku-board {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(9, 40px);
+            gap: 1px;
+            width: 366px;
+            height: 366px;
+            border: 2px solid #333;
+            padding: 2px;
+            border-collapse: collapse;
+            background-color: #111;
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #333;
+            border: 1px solid #444;
+            height: 100%;
+            box-sizing: border-box;
+            color: #fff;
+            user-select: none;
+        }
+
+        .cell:hover {
+            background-color: #555;
+        }
+
+        .fixed {
+            background-color: #444;
+            color: #aaa;
+        }
+
+        .correct {
+            background-color: #4caf50;
+            color: #111;
+        }
+
+        .incorrect {
+            background-color: #f44336;
+            color: #111;
+            font-weight: bold;
+        }
+
+        /* Block borders with distinct colors */
+        .block {
+            border-top: 2px solid transparent;
+            border-left: 2px solid transparent;
+            border-bottom: 2px solid transparent;
+            border-right: 2px solid transparent;
+        }
+
+        .block-0 {
+            border-right-color: red;
+            border-bottom-color: red;
+        }
+
+        .block-1 {
+            border-right-color: green;
+            border-bottom-color: green;
+        }
+
+        .block-2 {
+            border-right-color: blue;
+            border-bottom-color: blue;
+        }
+
+        .block-3 {
+            border-right-color: yellow;
+            border-bottom-color: yellow;
+        }
+
+        .block-4 {
+            border-right-color: orange;
+            border-bottom-color: orange;
+        }
+
+        .block-5 {
+            border-right-color: pink;
+            border-bottom-color: pink;
+        }
+
+        .block-6 {
+            border-right-color: cyan;
+            border-bottom-color: cyan;
+        }
+
+        .block-7 {
+            border-right-color: purple;
+            border-bottom-color: purple;
+        }
+
+        .block-8 {
+            border-right-color: gray;
+            border-bottom-color: gray;
+        }
+
+        #timer {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        /* Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .popup.show {
+            display: block;
+        }
+
+        .popup h2 {
+            margin-top: 0;
+        }
+
+        .popup p {
+            margin-bottom: 10px;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .popup button:hover {
+            background-color: #777;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sudoku-container">
+        <div id="timer">00:00</div>
+        <button onclick="newGame()">New Game</button>
+        <button onclick="checkSolution()">Check Solution</button>
+        <button onclick="revealSolution()">Reveal Solution</button>
+        <div id="sudoku-board" tabindex="0"></div> <!-- Added tabindex for keyboard focus -->
+    </div>
+
+    <!-- Popup for win/lose message -->
+    <div id="popup" class="popup">
+        <h2 id="popup-message"></h2>
+        <p id="time-taken"></p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        let board = [];
+        let solution = [];
+        let startTime;
+        let timerInterval;
+
+        function generateBoard() {
+            board = generateSudoku();
+            renderBoard();
+            startTimer();
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const elapsedTime = Date.now() - startTime;
+            const minutes = Math.floor(elapsedTime / (1000 * 60));
+            const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function generateSudoku() {
+            const board = [];
+            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+            for (let i = 0; i < 9; i++) {
+                board[i] = [];
+                for (let j = 0; j < 9; j++) {
+                    board[i][j] = 0;
+                }
+            }
+
+            fillBoard(board);
+            solution = JSON.parse(JSON.stringify(board)); // Deep copy of the board array
+            maskNumbers(board);
+
+            return board;
+        }
+
+        function fillBoard(board) {
+            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            solve(board, numbers);
+        }
+
+        function solve(board, numbers) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        shuffleArray(numbers);
+                        for (let num of numbers) {
+                            if (isValid(board, row, col, num)) {
+                                board[row][col] = num;
+                                if (solve(board, numbers)) {
+                                    return true;
+                                }
+                                board[row][col] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function isValid(board, row, col, num) {
+            for (let i = 0; i < 9; i++) {
+                if (board[row][i] === num) {
+                    return false;
+                }
+                if (board[i][col] === num) {
+                    return false;
+                }
+            }
+
+            const startRow = Math.floor(row / 3) * 3;
+            const startCol = Math.floor(col / 3) * 3;
+            for (let i = startRow; i < startRow + 3; i++) {
+                for (let j = startCol; j < startCol + 3; j++) {
+                    if (board[i][j] === num) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        function maskNumbers(board) {
+            const cellsToMask = 40;
+            let count = 0;
+
+            while (count < cellsToMask) {
+                const row = Math.floor(Math.random() * 9);
+                const col = Math.floor(Math.random() * 9);
+
+                if (board[row][col] !== 0) {
+                    board[row][col] = 0;
+                    count++;
+                }
+            }
+        }
+
+        function renderBoard() {
+            const container = document.getElementById('sudoku-board');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    if (board[i][j] !== 0) {
+                        cell.textContent = board[i][j];
+                        cell.dataset.value = board[i][j];
+                        cell.classList.add('fixed');
+                    }
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+
+                    // Add block class for styling blocks
+                    cell.classList.add(`block-${Math.floor(i / 3) * 3 + Math.floor(j / 3)}`);
+
+                    container.appendChild(cell);
+                }
+            }
+
+            // Add event listeners for keyboard and click input
+            container.addEventListener('click', handleCellClick);
+            container.addEventListener('keydown', handleKeyDown);
+            container.focus(); // Focus the Sudoku board for keyboard input
+        }
+
+        function newGame() {
+            stopTimer(); // Stop current timer if running
+            generateBoard();
+        }
+
+        function checkSolution() {
+            stopTimer(); // Stop timer when checking solution
+            const cells = document.querySelectorAll('.cell');
+            let isSolutionCorrect = true;
+
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const value = parseInt(cell.textContent);
+
+                if (value !== solution[row][col]) {
+                    cell.classList.add('incorrect');
+                    isSolutionCorrect = false;
+                } else {
+                    cell.classList.remove('incorrect');
+                }
+            });
+
+            if (isSolutionCorrect) {
+                cells.forEach(cell => {
+                    cell.classList.add('correct');
+                });
+                showPopup('You Win!', true);
+            } else {
+                showPopup('You Lose!', false);
+            }
+        }
+
+        function revealSolution() {
+            stopTimer(); // Stop timer when revealing solution
+            const container = document.getElementById('sudoku-board');
+            container.innerHTML = ''; // Clear current board
+
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.textContent = solution[i][j]; // Display correct solution
+                    cell.classList.add('fixed'); // Mark fixed cells
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+
+                    // Add block class for styling blocks
+                    cell.classList.add(`block-${Math.floor(i / 3) * 3 + Math.floor(j / 3)}`);
+
+                    container.appendChild(cell);
+                }
+            }
+            showPopup('Solution Revealed', false);
+        }
+
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            if (clickedCell.classList.contains('cell') && !clickedCell.classList.contains('fixed')) {
+                clickedCell.classList.remove('incorrect'); // Remove incorrect class if any
+                const numericValue = prompt('Enter a number (1-9):');
+                if (numericValue !== null && numericValue !== '' && !isNaN(parseInt(numericValue)) && parseInt(numericValue) >= 1 && parseInt(numericValue) <= 9) {
+                    clickedCell.textContent = numericValue;
+                }
+            }
+        }
+
+        function handleKeyDown(event) {
+            const key = event.key;
+            const numericValue = parseInt(key);
+
+            if (numericValue >= 1 && numericValue <= 9) {
+                const focusedCell = document.activeElement;
+                if (focusedCell && focusedCell.classList.contains('cell') && !focusedCell.classList.contains('fixed')) {
+                    focusedCell.textContent = key;
+                    focusedCell.classList.remove('incorrect'); // Remove incorrect class if any
+                }
+            }
+        }
+
+        // Shuffle function for array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Popup functions
+        function showPopup(message, isWin) {
+            const popup = document.getElementById('popup');
+            const popupMessage = document.getElementById('popup-message');
+            const timeTaken = document.getElementById('time-taken');
+
+            popupMessage.textContent = message;
+
+            const elapsedTime = calculateElapsedTime();
+            timeTaken.textContent = `Time taken: ${formatTime(elapsedTime)}`;
+
+            popup.classList.add('show');
+
+            if (isWin) {
+                popup.style.backgroundColor = '#4caf50'; // Green background for win
+            } else {
+                popup.style.backgroundColor = '#f44336'; // Red background for lose
+            }
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.classList.remove('show');
+        }
+
+        function calculateElapsedTime() {
+            const elapsedTime = Date.now() - startTime;
+            return elapsedTime;
+        }
+
+        function formatTime(milliseconds) {
+            const minutes = Math.floor(milliseconds / (1000 * 60));
+            const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Initial generation of Sudoku board
+        generateBoard();
+    </script>
+</body>
+
+</html>

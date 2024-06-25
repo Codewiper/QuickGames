@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Capabilities Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .client-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .client-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .client-card.active {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .capabilities-view {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .capability-block {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .capability-block:hover {
+            transform: scale(1.05);
+        }
+        .hidden {
+            display: none;
+        }
+        #capability-filter {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Client Capabilities Dashboard</h1>
+        <select id="capability-filter">
+            <option value="">Filter by Capability</option>
+        </select>
+        <div class="client-grid">
+            <div class="client-card" data-client="A">Client A</div>
+            <div class="client-card" data-client="B">Client B</div>
+            <div class="client-card" data-client="C">Client C</div>
+            <div class="client-card" data-client="D">Client D</div>
+            <div class="client-card" data-client="E">Client E</div>
+        </div>
+        <div class="capabilities-view">
+            <h2 id="view-title">All Capabilities</h2>
+            <div id="capabilities-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const clientData = {
+            A: {
+                List: true,
+                "Single Init": false,
+                "Bulk Init": true,
+                "Foreign Payment": false,
+                "Cancel Check": true,
+                "Refund (Shipped)": false,
+                "Reissue (Shipped)": false,
+                "Refund (Unclaimed)": false,
+                "Reissue (Returned)": false,
+                "Refund (Returned)": false,
+                "Refund (Stale Dated)": false,
+                "Bulk Upload Reason Code": false
+            },
+            B: {
+                List: false,
+                "Single Init": true,
+                "Bulk Init": false,
+                "Foreign Payment": true,
+                "Cancel Check": false,
+                "Refund (Shipped)": true,
+                "Reissue (Shipped)": true,
+                "Refund (Unclaimed)": false,
+                "Reissue (Returned)": false,
+                "Refund (Returned)": true,
+                "Refund (Stale Dated)": false,
+                "Bulk Upload Reason Code": false
+            },
+            C: {
+                List: true,
+                "Single Init": true,
+                "Bulk Init": true,
+                "Foreign Payment": true,
+                "Cancel Check": true,
+                "Refund (Shipped)": true,
+                "Reissue (Shipped)": false,
+                "Refund (Unclaimed)": true,
+                "Reissue (Returned)": false,
+                "Refund (Returned)": true,
+                "Refund (Stale Dated)": true,
+                "Bulk Upload Reason Code": true
+            },
+            D: {
+                List: false,
+                "Single Init": false,
+                "Bulk Init": false,
+                "Foreign Payment": false,
+                "Cancel Check": true,
+                "Refund (Shipped)": false,
+                "Reissue (Shipped)": false,
+                "Refund (Unclaimed)": false,
+                "Reissue (Returned)": true,
+                "Refund (Returned)": false,
+                "Refund (Stale Dated)": false,
+                "Bulk Upload Reason Code": true
+            },
+            E: {
+                List: true,
+                "Single Init": false,
+                "Bulk Init": false,
+                "Foreign Payment": false,
+                "Cancel Check": false,
+                "Refund (Shipped)": true,
+                "Reissue (Shipped)": false,
+                "Refund (Unclaimed)": false,
+                "Reissue (Returned)": false,
+                "Refund (Returned)": false,
+                "Refund (Stale Dated)": true,
+                "Bulk Upload Reason Code": false
+            }
+        };
+
+        const colors = [
+            '#4CAF50', '#2196F3', '#FFC107', '#E91E63', '#9C27B0',
+            '#00BCD4', '#FF5722', '#795548', '#607D8B', '#3F51B5',
+            '#CDDC39', '#009688'
+        ];
+
+        $(document).ready(function() {
+            populateCapabilityFilter();
+            showAllCapabilities();
+
+            $('.client-card').click(function() {
+                $('.client-card').removeClass('active');
+                $(this).addClass('active');
+                const client = $(this).data('client');
+                showClientCapabilities(client);
+            });
+
+            $('#capability-filter').change(function() {
+                const capability = $(this).val();
+                if (capability) {
+                    showClientsWithCapability(capability);
+                } else {
+                    showAllCapabilities();
+                }
+            });
+        });
+
+        function populateCapabilityFilter() {
+            const capabilities = Object.keys(clientData.A);
+            capabilities.forEach(capability => {
+                $('#capability-filter').append($('<option>', {
+                    value: capability,
+                    text: capability
+                }));
+            });
+        }
+
+        function showClientCapabilities(client) {
+            const capabilities = clientData[client];
+            $('#view-title').text(`Client ${client} Capabilities`);
+            const container = $('#capabilities-container');
+            container.empty();
+
+            Object.entries(capabilities).forEach(([capability, value], index) => {
+                const block = $('<div>')
+                    .addClass('capability-block')
+                    .css('background-color', value ? colors[index % colors.length] : '#F44336')
+                    .text(capability);
+                container.append(block);
+            });
+        }
+
+        function showAllCapabilities() {
+            $('#view-title').text('All Capabilities');
+            const container = $('#capabilities-container');
+            container.empty();
+
+            Object.keys(clientData.A).forEach((capability, index) => {
+                const block = $('<div>')
+                    .addClass('capability-block')
+                    .css('background-color', colors[index % colors.length])
+                    .text(capability);
+                container.append(block);
+            });
+
+            $('.client-card').removeClass('active');
+        }
+
+        function showClientsWithCapability(capability) {
+            $('#view-title').text(`Clients with ${capability}`);
+            const container = $('#capabilities-container');
+            container.empty();
+
+            Object.entries(clientData).forEach(([client, capabilities]) => {
+                if (capabilities[capability]) {
+                    const block = $('<div>')
+                        .addClass('capability-block')
+                        .css('background-color', colors[Object.keys(clientData.A).indexOf(capability) % colors.length])
+                        .text(`Client ${client}`);
+                    container.append(block);
+                }
+            });
+
+            $('.client-card').removeClass('active');
+        }
+    </script>
+</body>
+</html>
