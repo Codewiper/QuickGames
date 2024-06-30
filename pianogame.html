@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Rush - Kid-Friendly Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        #gameContainer {
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: #fff;
+        }
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        #tutorial {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <h1>Rhythm Rush</h1>
+        <canvas id="gameCanvas"></canvas>
+        <div id="score">Score: 0</div>
+        <div id="lives">Lives: 10</div>
+        <div id="level">Level: 1</div>
+        <button id="startButton">Start Game</button>
+        <button id="tutorialButton">How to Play</button>
+    </div>
+    <div id="tutorial">
+        <h2>How to Play</h2>
+        <p>Click or tap the falling tiles in rhythm with the music. You have 10 lives!</p>
+        <p>The game will slowly get faster as you play. Have fun!</p>
+        <button id="closeTutorial">Close</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const tutorialButton = document.getElementById('tutorialButton');
+        const closeTutorialButton = document.getElementById('closeTutorial');
+        const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        const levelDisplay = document.getElementById('level');
+        const tutorial = document.getElementById('tutorial');
+
+        let COLUMN_COUNT = 4;
+        let TILE_HEIGHT, TILE_WIDTH;
+
+        let gameState = 'menu';
+        let score = 0;
+        let lives = 10;
+        let tiles = [];
+        let currentLevel = 1;
+        let currentSong = 0;
+        let baseSpeed = 1;
+        let speedIncreaseFactor = 0.05;
+        let backgroundColors = ['#87CEEB', '#E0F6FF', '#FFC0CB', '#FFD700', '#8FBC8F'];
+
+        const SONGS = [
+            { name: 'Song 1', pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3] },
+            { name: 'Song 2', pattern: [3, 2, 1, 0, 1, 2, 3, 2, 1, 0] },
+            { name: 'Song 3', pattern: [0, 2, 1, 3, 0, 2, 1, 3, 2, 1] }
+        ];
+
+        // Audio setup
+        let audioContext;
+        let backgroundMusic;
+        const noteFrequencies = [261.63, 293.66, 329.63, 349.23]; // C4, D4, E4, F4
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            backgroundMusic = audioContext.createOscillator();
+            backgroundMusic.type = 'sine';
+            backgroundMusic.frequency.setValueAtTime(65.41, audioContext.currentTime); // C2 note
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Lower volume
+            backgroundMusic.connect(gainNode).connect(audioContext.destination);
+        }
+
+        function playBackgroundMusic() {
+            if (backgroundMusic.state === 'stopped') {
+                backgroundMusic.start();
+            }
+        }
+
+        function playNoteSound(column) {
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(noteFrequencies[column], audioContext.currentTime);
+            
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+            
+            oscillator.connect(gainNode).connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth * 0.8;
+            canvas.height = window.innerHeight * 0.7;
+            TILE_HEIGHT = canvas.height / 4;
+            TILE_WIDTH = canvas.width / COLUMN_COUNT;
+        }
+
+        function drawTile(x, y, color) {
+            const gradient = ctx.createLinearGradient(x, y, x + TILE_WIDTH, y + TILE_HEIGHT);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, y, TILE_WIDTH, TILE_HEIGHT);
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, TILE_WIDTH, TILE_HEIGHT);
+        }
+
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGradient.addColorStop(0, backgroundColors[Math.floor(score / 25) % backgroundColors.length]);
+            bgGradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'playing') {
+                if (Math.random() < 0.02) {
+                    const nextColumn = Math.floor(Math.random() * COLUMN_COUNT);
+                    tiles.push({ 
+                        x: nextColumn * TILE_WIDTH, 
+                        y: -TILE_HEIGHT,
+                        missed: false,
+                        color: `hsl(${Math.random() * 360}, 100%, 50%)` // Random color
+                    });
+                }
+
+                const currentSpeed = baseSpeed + (currentLevel - 1) * speedIncreaseFactor;
+
+                tiles.forEach((tile, index) => {
+                    tile.y += currentSpeed;
+                    drawTile(tile.x, tile.y, tile.color);
+
+                    if (tile.y > canvas.height && !tile.missed) {
+                        tile.missed = true;
+                        lives--;
+                        livesDisplay.textContent = `Lives: ${lives}`;
+                        if (lives <= 0) {
+                            gameState = 'gameOver';
+                        }
+                    }
+                });
+
+                tiles = tiles.filter(tile => tile.y < canvas.height + TILE_HEIGHT);
+
+                scoreDisplay.textContent = `Score: ${score}`;
+                levelDisplay.textContent = `Level: ${currentLevel}`;
+            } else if (gameState === 'gameOver') {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.fillText('Game Over', canvas.width / 2 - 70, canvas.height / 2);
+                startButton.textContent = 'Play Again';
+                startButton.style.display = 'inline-block';
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            score = 0;
+            lives = 10;
+            tiles = [];
+            currentLevel = 1;
+            currentSong = Math.floor(Math.random() * SONGS.length);
+            startButton.style.display = 'none';
+            
+            if (!audioContext) {
+                initAudio();
+            }
+            playBackgroundMusic();
+            
+            updateGame();
+        }
+
+        function handleInput(x, y) {
+            if (gameState === 'playing') {
+                tiles.forEach((tile, index) => {
+                    if (x > tile.x && x < tile.x + TILE_WIDTH &&
+                        y > tile.y && y < tile.y + TILE_HEIGHT) {
+                        tiles.splice(index, 1);
+                        score++;
+                        const column = Math.floor(tile.x / TILE_WIDTH);
+                        playNoteSound(column);
+
+                        if (score % 10 === 0) {
+                            currentLevel++;
+                            currentSong = (currentSong + 1) % SONGS.length;
+                        }
+
+                        if (score % 25 === 0) {
+                            TILE_HEIGHT *= 0.9; // Make tiles slightly smaller
+                            TILE_WIDTH *= 0.9; // Make tiles slightly smaller
+                        }
+                    }
+                });
+            }
+        }
+
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+            handleInput(clickX, clickY);
+        });
+
+        canvas.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touchX = event.touches[0].clientX - rect.left;
+            const touchY = event.touches[0].clientY - rect.top;
+            handleInput(touchX, touchY);
+        }, false);
+
+        startButton.addEventListener('click', startGame);
+
+        tutorialButton.addEventListener('click', () => {
+            tutorial.style.display = 'block';
+        });
+
+        closeTutorialButton.addEventListener('click', () => {
+            tutorial.style.display = 'none';
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Initial setup
+        resizeCanvas();
+        updateGame();
+    </script>
+</body>
+</html>
