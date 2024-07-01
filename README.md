@@ -10,3 +10,5 @@ QuickGames
 <a href="https://codewiper.github.io/QuickGames/sodoku.html">Sudoku</a>
 
 <a href="https://codewiper.github.io/QuickGames/pianogame.html">Piano Tile game</a>
+
+<a href="https://codewiper.github.io/prishasquizgame/main.html">English and Math games</a>
