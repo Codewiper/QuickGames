@@ -62,7 +62,7 @@
         };
 
 
-        
+
 
         let obstacles = [];
         let houses = [];
@@ -106,13 +106,13 @@
             }
 
 
-            
 
-             // Draw face on the biker
-    ctx.fillStyle = '#333'; // Adjust color as needed
-    ctx.beginPath();
-    ctx.arc(bike.x + bike.width * 0.4, bike.y - 20, 10, 0, Math.PI * 2); // Adjust position and size as needed
-    ctx.fill();
+
+            // Draw face on the biker
+            ctx.fillStyle = '#333'; // Adjust color as needed
+            ctx.beginPath();
+            ctx.arc(bike.x + bike.width * 0.4, bike.y - 20, 10, 0, Math.PI * 2); // Adjust position and size as needed
+            ctx.fill();
 
             // Draw man sitting on the bike
             ctx.fillStyle = '#ffffff';
@@ -240,28 +240,28 @@
 
 
             document.addEventListener('keydown', (e) => {
-    switch(e.key) {
-        case 'ArrowRight':
-            isMovingRight = true;
-            score += 1; // Increase score when using ArrowRight key
-            break;
-        case 'ArrowLeft':
-            isMovingLeft = true;
-            score -= 1; // Decrease score when using ArrowLeft key
-            break;
-        case ' ':
-            if (!bike.jumping) {
-                bike.jumping = true;
-                bike.jumpSpeed = -10;
-                score += 5; // Increase score on jump
-            }
-            break;
-    }
-});
+                switch (e.key) {
+                    case 'ArrowRight':
+                        isMovingRight = true;
+                        score += 1; // Increase score when using ArrowRight key
+                        break;
+                    case 'ArrowLeft':
+                        isMovingLeft = true;
+                        score -= 1; // Decrease score when using ArrowLeft key
+                        break;
+                    case ' ':
+                        if (!bike.jumping) {
+                            bike.jumping = true;
+                            bike.jumpSpeed = -10;
+                            score += 5; // Increase score on jump
+                        }
+                        break;
+                }
+            });
 
-              // Limit bike movement to keep it away from edges
-    const edgeBuffer = 100; // Adjust as needed
-    bike.x = Math.max(edgeBuffer, Math.min(bike.x, canvas.width - edgeBuffer - bike.width));
+            // Limit bike movement to keep it away from edges
+            const edgeBuffer = 100; // Adjust as needed
+            bike.x = Math.max(edgeBuffer, Math.min(bike.x, canvas.width - edgeBuffer - bike.width));
         }
 
         function updateObstacles() {
