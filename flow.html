@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Processing Workflows</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .workflow {
+            margin-bottom: 40px;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll */
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .stages {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 14px;
+            /* Reduced font size */
+        }
+
+        .stage {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            /* Reduced padding */
+            border-radius: 5px;
+            margin: 10px 0;
+            position: relative;
+            z-index: 2;
+            margin: 10px 5px;
+            /* Reduced horizontal margin */
+        }
+
+        .tooltip {
+    visibility: hidden;
+    background-color: #555;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 8px 12px; /* Adjust padding as needed */
+    position: absolute;
+    z-index: 1;
+    bottom: calc(100% + 10px); /* Position the tooltip above the stage with some spacing */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    max-width: 350px; /* Set a maximum width */
+    white-space: nowrap; /* Prevent text from wrapping */
+    font-size: 12px; /* Adjust font size smaller */
+    line-height: 1.4; /* Adjust line height as needed */
+    
+
+}
+
+.stage:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%; /* Arrow at the bottom of the tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+    
+}
+
+
+
+
+
+        .arrow {
+            width: 60px;
+            /* Reduced width */
+            height: 4px;
+            background-color: #2c3e50;
+            position: relative;
+            margin: 0 5px;
+            /* Reduced horizontal margin */
+        }
+
+        .arrow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, #3498db, transparent);
+            animation: flowingArrow 2s linear infinite;
+            opacity: 0.7;
+        }
+
+        .arrow::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            /* Adjusted from -8px to -5px */
+            top: -4px;
+            /* Adjusted from -6px to -4px */
+            width: 0;
+            height: 0;
+            border-left: 10px solid #2c3e50;
+            /* Arrow size */
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        @keyframes flowingArrow {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 200%;
+    }
+}
+
+        .stages .stage:last-child+.arrow {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Check Processing Workflows</h1>
+
+        <div class="workflow">
+            <h2>1. Cleared Check Workflow</h2>
+            <div class="stages">
+                <div class="stage">
+                    Check Initiation
+                    <div class="tooltip"><pre>               Check is Initaited by API or OnePay</pre></div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check File Sent
+                    <div class="tooltip">Check is sent to Harland Clarke for Printing</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipping in Progress
+                    <div class="tooltip">Check is printed and ready to ship</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipped
+                    <div class="tooltip">Check is shipped via USPS</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Cleared
+                    <div class="tooltip">Check is cleared</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workflow">
+            <h2>2. Unclaimed Check Workflow</h2>
+            <div class="stages">
+                <div class="stage">
+                    Check Initiation
+                    <div class="tooltip"><pre>               Check is Initaited by API or OnePay</pre></div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check File Sent
+                    <div class="tooltip">Check is sent to Harland Clarke for Printing</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipping in Progress
+                    <div class="tooltip">Check is printed and ready to ship</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipped
+                    <div class="tooltip">Check is shipped via USPS</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Stale-dated
+                    <div class="tooltip">Check has reached the stale date (ex 180 days from shipped status)</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Unclaimed
+                    <div class="tooltip">Check is sent for escheatment</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workflow">
+            <h2>3. Refund Check Workflow</h2>
+            <div class="stages">
+                <div class="stage">
+                    Check Initiation
+                    <div class="tooltip"><pre>               Check is Initaited by API or OnePay</pre></div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check File Sent
+                    <div class="tooltip">Check is sent to Harland Clarke for Printing</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipping in Progress
+                    <div class="tooltip">Check is printed and ready to ship</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipped
+                    <div class="tooltip">Check is shipped via USPS</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check Stopped
+                    <div class="tooltip">Check is stopped in the mainframe system</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check Refund
+                    <div class="tooltip">Check db status in PayX is now refunded</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workflow">
+            <h2>4. Reissued Check Workflow</h2>
+            <div class="stages">
+                <div class="stage">
+                    Check Initiation
+                    <div class="tooltip"><pre>               Check is Initaited by API or OnePay</pre></div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check File Sent
+                    <div class="tooltip">Check is sent to Harland Clarke for Printing</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipping in Progress
+                    <div class="tooltip">Check is printed and ready to ship</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Shipped
+                    <div class="tooltip">Check is shipped via USPS</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check Stopped
+                    <div class="tooltip">Check is stopped in the mainframe system</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    New Check Initiation
+                    <div class="tooltip">Original Check is marked as reissued and new check is initiated</div>
+                </div>
+                <div class="arrow"></div>
+                <div class="stage">
+                    Check Reissued
+                    <div class="tooltip"><pre>Old Check is 
+marked as reissued  </pre></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
