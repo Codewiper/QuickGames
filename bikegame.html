@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Bike Racing Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            border: 2px solid #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const bike = {
+            x: 200,
+            y: 250,
+            width: 80,
+            height: 40,
+            speed: 0,
+            acceleration: 0.2,
+            maxSpeed: 5,
+            deceleration: 0.1,
+            jumping: false,
+            jumpHeight: 100,
+            jumpSpeed: 0,
+            gravity: 0.5,
+            man: {
+                width: 20,
+                height: 40,
+                yOffset: -20, // Adjust as needed to position correctly on the bike
+                jumping: false // To control man's jumping animation
+            }
+        };
+
+        const road = {
+            y: 300,
+            width: canvas.width,
+            height: 100,
+            stripeWidth: 50,
+            stripeHeight: 10,
+            stripeGap: 50,
+            stripeOffset: 0
+        };
+
+
+        
+
+        let obstacles = [];
+        let houses = [];
+        let trees = [];
+        let score = 0;
+        let lives = 5;
+        let frameCount = 0;
+        let distanceTraveled = 0;
+        let isMovingRight = false;
+        let isMovingLeft = false;
+
+        function drawBike() {
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.moveTo(bike.x, bike.y + bike.height);
+            ctx.lineTo(bike.x + bike.width * 0.4, bike.y);
+            ctx.lineTo(bike.x + bike.width * 0.6, bike.y);
+            ctx.lineTo(bike.x + bike.width, bike.y + bike.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw wheels
+            ctx.beginPath();
+            ctx.arc(bike.x + 20, bike.y + bike.height, 15, 0, Math.PI * 2);
+            ctx.arc(bike.x + bike.width - 20, bike.y + bike.height, 15, 0, Math.PI * 2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw spokes
+            for (let i = 0; i < 4; i++) {
+                const angle = (frameCount * bike.speed * 0.2 + i * Math.PI / 2) % (Math.PI * 2);
+                ctx.beginPath();
+                ctx.moveTo(bike.x + 20, bike.y + bike.height);
+                ctx.lineTo(bike.x + 20 + Math.cos(angle) * 15, bike.y + bike.height + Math.sin(angle) * 15);
+                ctx.moveTo(bike.x + bike.width - 20, bike.y + bike.height);
+                ctx.lineTo(bike.x + bike.width - 20 + Math.cos(angle) * 15, bike.y + bike.height + Math.sin(angle) * 15);
+                ctx.stroke();
+            }
+
+
+            
+
+             // Draw face on the biker
+    ctx.fillStyle = '#333'; // Adjust color as needed
+    ctx.beginPath();
+    ctx.arc(bike.x + bike.width * 0.4, bike.y - 20, 10, 0, Math.PI * 2); // Adjust position and size as needed
+    ctx.fill();
+
+            // Draw man sitting on the bike
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(bike.x + bike.width * 0.4 - bike.man.width / 2, bike.y + bike.man.yOffset, bike.man.width, bike.man.height);
+        }
+
+        function drawRoad() {
+            ctx.fillStyle = '#444444';
+            ctx.fillRect(0, road.y, road.width, road.height);
+
+            // Draw moving road markings
+            ctx.fillStyle = '#ffffff';
+            for (let i = -road.stripeWidth; i < canvas.width + road.stripeWidth; i += road.stripeWidth + road.stripeGap) {
+                ctx.fillRect(i + road.stripeOffset, road.y + road.height / 2 - road.stripeHeight / 2, road.stripeWidth, road.stripeHeight);
+            }
+            road.stripeOffset -= 5;
+            if (road.stripeOffset <= -(road.stripeWidth + road.stripeGap)) {
+                road.stripeOffset = 0;
+            }
+        }
+
+        function drawBackground() {
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, road.y);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, road.y);
+
+            // Draw houses
+            houses.forEach(house => {
+                ctx.fillStyle = house.color;
+                ctx.fillRect(house.x, house.y, house.width, house.height);
+
+                // Roof
+                ctx.beginPath();
+                ctx.moveTo(house.x, house.y);
+                ctx.lineTo(house.x + house.width / 2, house.y - 20);
+                ctx.lineTo(house.x + house.width, house.y);
+                ctx.closePath();
+                ctx.fillStyle = '#8B4513';
+                ctx.fill();
+
+                // Window
+                ctx.fillStyle = '#87CEFA';
+                ctx.fillRect(house.x + 10, house.y + 20, 20, 20);
+            });
+
+            // Draw trees
+            trees.forEach(tree => {
+                // Tree trunk
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(tree.x, tree.y, 20, 60);
+
+                // Tree leaves
+                ctx.fillStyle = '#228B22';
+                ctx.beginPath();
+                ctx.moveTo(tree.x - 30, tree.y);
+                ctx.lineTo(tree.x + 50, tree.y);
+                ctx.lineTo(tree.x + 10, tree.y - 80);
+                ctx.closePath();
+                ctx.fill();
+            });
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                ctx.beginPath();
+
+                switch (obstacle.shape) {
+                    case 'triangle':
+                        ctx.moveTo(obstacle.x, obstacle.y + obstacle.height);
+                        ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y);
+                        ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+                        break;
+                    case 'circle':
+                        ctx.arc(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2,
+                            obstacle.width / 2, 0, Math.PI * 2);
+                        break;
+                    default: // rectangle
+                        ctx.rect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
+
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+        }
+
+        function updateBike() {
+            if (isMovingRight) {
+                bike.speed = Math.min(bike.speed + bike.acceleration, bike.maxSpeed);
+            } else if (isMovingLeft) {
+                bike.speed = Math.max(bike.speed - bike.acceleration, -bike.maxSpeed);
+            } else {
+                bike.speed = bike.speed > 0 ?
+                    Math.max(0, bike.speed - bike.deceleration) :
+                    Math.min(0, bike.speed + bike.deceleration);
+            }
+
+            bike.x += bike.speed;
+            // Limit bike movement to keep it away from edges
+            bike.x = Math.max(100, Math.min(bike.x, canvas.width - 100 - bike.width));
+
+            if (bike.jumping) {
+                bike.jumpSpeed += bike.gravity;
+                bike.y += bike.jumpSpeed;
+
+                if (bike.y >= 250) {
+                    bike.y = 250;
+                    bike.jumping = false;
+                    bike.jumpSpeed = 0;
+                }
+            }
+
+            // Increment distance traveled and score
+            distanceTraveled += Math.abs(bike.speed);
+            if (distanceTraveled >= 100) {
+                score += Math.floor(distanceTraveled / 100);
+                distanceTraveled %= 100;
+            }
+
+
+            document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+        case 'ArrowRight':
+            isMovingRight = true;
+            score += 1; // Increase score when using ArrowRight key
+            break;
+        case 'ArrowLeft':
+            isMovingLeft = true;
+            score -= 1; // Decrease score when using ArrowLeft key
+            break;
+        case ' ':
+            if (!bike.jumping) {
+                bike.jumping = true;
+                bike.jumpSpeed = -10;
+                score += 5; // Increase score on jump
+            }
+            break;
+    }
+});
+
+              // Limit bike movement to keep it away from edges
+    const edgeBuffer = 100; // Adjust as needed
+    bike.x = Math.max(edgeBuffer, Math.min(bike.x, canvas.width - edgeBuffer - bike.width));
+        }
+
+        function updateObstacles() {
+            if (frameCount % 100 === 0) {
+                const shapes = ['rectangle', 'triangle', 'circle'];
+                const colors = ['#ff8800', '#00ff00', '#ff00ff'];
+                obstacles.push({
+                    x: canvas.width,
+                    y: road.y - 30,
+                    width: 30,
+                    height: 30,
+                    shape: shapes[Math.floor(Math.random() * shapes.length)],
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= 5;
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(index, 1);
+                }
+
+                // Collision detection
+                if (
+                    bike.x < obstacle.x + obstacle.width &&
+                    bike.x + bike.width > obstacle.x &&
+                    bike.y + bike.height > obstacle.y &&
+                    bike.y < obstacle.y + obstacle.height
+                ) {
+                    lives--;
+                    obstacles.splice(index, 1);
+                    if (lives <= 0) {
+                        alert(`Game Over! Your score: ${score}`);
+                        resetGame();
+                    }
+                }
+            });
+        }
+
+        function updateHouses() {
+            if (frameCount % 200 === 0) {
+                houses.push({
+                    x: canvas.width,
+                    y: Math.random() * (road.y - 150) + 50,
+                    width: 50 + Math.random() * 30,
+                    height: 60 + Math.random() * 40,
+                    color: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`
+                });
+            }
+
+            houses.forEach((house, index) => {
+                house.x -= 1;
+                if (house.x + house.width < 0) {
+                    houses.splice(index, 1);
+                }
+            });
+        }
+
+        function updateTrees() {
+            if (frameCount % 150 === 0) {
+                trees.push({
+                    x: canvas.width,
+                    y: Math.random() * (road.y - 160) + 100
+                });
+            }
+
+            trees.forEach((tree, index) => {
+                tree.x -= 2;
+                if (tree.x + 50 < 0) {
+                    trees.splice(index, 1);
+                }
+            });
+        }
+
+        function drawScore() {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText(`Score: ${score}`, 20, 40);
+            ctx.fillText(`Lives: ${'♥'.repeat(lives)}`, 20, 70);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeText(`Score: ${score}`, 20, 40);
+            ctx.strokeText(`Lives: ${'♥'.repeat(lives)}`, 20, 70);
+        }
+
+        function animate() {
+            frameCount++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawRoad();
+            drawBike();
+            drawObstacles();
+            drawScore();
+            updateBike();
+            updateObstacles();
+            updateHouses();
+            updateTrees();
+
+            // Update man's jumping animation
+            if (bike.jumping) {
+                bike.man.yOffset = Math.sin(frameCount * 0.2) * 10 - 30; // Adjust the amplitude and offset as needed
+            } else {
+                bike.man.yOffset = -20; // Reset man's position when bike is on the ground
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+
+        function resetGame() {
+            bike.x = 200;
+            bike.y = 250;
+            bike.speed = 0;
+            obstacles = [];
+            houses = [];
+            trees = [];
+            score = 0;
+            lives = 5;
+            distanceTraveled = 0;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowRight':
+                    isMovingRight = true;
+                    break;
+                case 'ArrowLeft':
+                    isMovingLeft = true;
+                    break;
+                case ' ':
+                    if (!bike.jumping) {
+                        bike.jumping = true;
+                        bike.jumpSpeed = -10;
+                    }
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.key) {
+                case 'ArrowRight':
+                    isMovingRight = false;
+                    break;
+                case 'ArrowLeft':
+                    isMovingLeft = false;
+                    break;
+            }
+        });
+
+        animate();
+    </script>
+</body>
+
+</html>
