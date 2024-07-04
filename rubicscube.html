@@ -200,6 +200,32 @@
             }
         });
 
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            if (absDx > absDy) {
+                if (dx > 0) moveBlock(-1, 0); // Swipe right
+                else moveBlock(1, 0); // Swipe left
+            } else {
+                if (dy > 0) moveBlock(0, 1); // Swipe down
+                else moveBlock(0, -1); // Swipe up
+            }
+        });
+
         newGameBtn.addEventListener('click', () => {
             document.body.classList.remove('rainbow-background');
             initGame();
@@ -209,7 +235,3 @@
     </script>
 </body>
 </html>
-
-
-        
-           
