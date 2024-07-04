@@ -1,0 +1,89 @@
+{
+    "clients": ["A", "B", "C", "D", "E"],
+    "capabilities": [
+      "List",
+      "Single Init",
+      "Bulk Init",
+      "Foreign Payment",
+      "Cancel Check",
+      "Refund (Shipped)",
+      "Reissue (Shipped)",
+      "Refund (Unclaimed)",
+      "Reissue (Returned)",
+      "Refund (Returned)",
+      "Refund (Stale Dated)",
+      "Bulk Upload Reason Code"
+    ],
+    "clientData": {
+      "A": {
+        "List": true,
+        "Single Init": false,
+        "Bulk Init": true,
+        "Foreign Payment": false,
+        "Cancel Check": true,
+        "Refund (Shipped)": false,
+        "Reissue (Shipped)": false,
+        "Refund (Unclaimed)": false,
+        "Reissue (Returned)": false,
+        "Refund (Returned)": false,
+        "Refund (Stale Dated)": false,
+        "Bulk Upload Reason Code": false
+      },
+      "B": {
+        "List": false,
+        "Single Init": true,
+        "Bulk Init": false,
+        "Foreign Payment": true,
+        "Cancel Check": false,
+        "Refund (Shipped)": true,
+        "Reissue (Shipped)": true,
+        "Refund (Unclaimed)": false,
+        "Reissue (Returned)": false,
+        "Refund (Returned)": true,
+        "Refund (Stale Dated)": false,
+        "Bulk Upload Reason Code": false
+      },
+      "C": {
+        "List": true,
+        "Single Init": true,
+        "Bulk Init": true,
+        "Foreign Payment": true,
+        "Cancel Check": true,
+        "Refund (Shipped)": true,
+        "Reissue (Shipped)": false,
+        "Refund (Unclaimed)": true,
+        "Reissue (Returned)": false,
+        "Refund (Returned)": true,
+        "Refund (Stale Dated)": true,
+        "Bulk Upload Reason Code": true
+      },
+      "D": {
+        "List": false,
+        "Single Init": false,
+        "Bulk Init": false,
+        "Foreign Payment": false,
+        "Cancel Check": true,
+        "Refund (Shipped)": false,
+        "Reissue (Shipped)": false,
+        "Refund (Unclaimed)": false,
+        "Reissue (Returned)": true,
+        "Refund (Returned)": false,
+        "Refund (Stale Dated)": false,
+        "Bulk Upload Reason Code": true
+      },
+      "E": {
+        "List": true,
+        "Single Init": false,
+        "Bulk Init": false,
+        "Foreign Payment": false,
+        "Cancel Check": false,
+        "Refund (Shipped)": true,
+        "Reissue (Shipped)": false,
+        "Refund (Unclaimed)": false,
+        "Reissue (Returned)": false,
+        "Refund (Returned)": false,
+        "Refund (Stale Dated)": true,
+        "Bulk Upload Reason Code": false
+      }
+    }
+  }

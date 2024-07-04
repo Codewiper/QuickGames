@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Capabilities Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .client-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .client-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .client-card.active {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .capabilities-view {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .capability-block {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .capability-block:hover {
+            transform: scale(1.05);
+        }
+        .hidden {
+            display: none;
+        }
+        #capability-filter {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Client Capabilities Dashboard</h1>
+        <select id="capability-filter">
+            <option value="">Filter by Capability</option>
+        </select>
+        <div class="client-grid" id="client-grid"></div>
+        <div class="capabilities-view">
+            <h2 id="view-title">All Capabilities</h2>
+            <div id="capabilities-container"></div>
+        </div>
+    </div>
+
+    <script>
+        let clientData;
+        const colors = [
+            '#4CAF50', '#2196F3', '#FFC107', '#E91E63', '#9C27B0',
+            '#00BCD4', '#FF5722', '#795548', '#607D8B', '#3F51B5',
+            '#CDDC39', '#009688'
+        ];
+
+        $(document).ready(function() {
+            // Load JSON data
+            $.getJSON('client_capabilities_data.json', function(data) {
+                clientData = data;
+                initializeApp();
+            });
+        });
+
+        function initializeApp() {
+            populateClientGrid();
+            populateCapabilityFilter();
+            showAllCapabilities();
+
+            $('.client-card').click(function() {
+                $('.client-card').removeClass('active');
+                $(this).addClass('active');
+                const client = $(this).data('client');
+                showClientCapabilities(client);
+            });
+
+            $('#capability-filter').change(function() {
+                const capability = $(this).val();
+                if (capability) {
+                    showClientsWithCapability(capability);
+                } else {
+                    showAllCapabilities();
+                }
+            });
+        }
+
+        function populateClientGrid() {
+            const grid = $('#client-grid');
+            clientData.clients.forEach(client => {
+                grid.append($('<div>', {
+                    class: 'client-card',
+                    'data-client': client,
+                    text: `Client ${client}`
+                }));
+            });
+        }
+
+        function populateCapabilityFilter() {
+            const filter = $('#capability-filter');
+            clientData.capabilities.forEach(capability => {
+                filter.append($('<option>', {
+                    value: capability,
+                    text: capability
+                }));
+            });
+        }
+
+        function showClientCapabilities(client) {
+            const capabilities = clientData.clientData[client];
+            $('#view-title').text(`Client ${client} Capabilities`);
+            const container = $('#capabilities-container');
+            container.empty();
+
+            clientData.capabilities.forEach((capability, index) => {
+                const block = $('<div>')
+                    .addClass('capability-block')
+                    .css('background-color', capabilities[capability] ? colors[index % colors.length] : '#F44336')
+                    .text(capability);
+                container.append(block);
+            });
+        }
+
+        function showAllCapabilities() {
+            $('#view-title').text('All Capabilities');
+            const container = $('#capabilities-container');
+            container.empty();
+
+            clientData.capabilities.forEach((capability, index) => {
+                const block = $('<div>')
+                    .addClass('capability-block')
+                    .css('background-color', colors[index % colors.length])
+                    .text(capability);
+                container.append(block);
+            });
+
+            $('.client-card').removeClass('active');
+        }
+
+        function showClientsWithCapability(capability) {
+            $('#view-title').text(`Clients with ${capability}`);
+            const container = $('#capabilities-container');
+            container.empty();
+
+            clientData.clients.forEach(client => {
+                if (clientData.clientData[client][capability]) {
+                    const block = $('<div>')
+                        .addClass('capability-block')
+                        .css('background-color', colors[clientData.capabilities.indexOf(capability) % colors.length])
+                        .text(`Client ${client}`);
+                    container.append(block);
+                }
+            });
+
+            $('.client-card').removeClass('active');
+        }
+    </script>
+</body>
+</html>
