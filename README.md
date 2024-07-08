@@ -50,3 +50,38 @@ QuickGames
   </tr>
 </table>
 
+
+This is QuickGames, a super fun and easy tool I created to help my daughter make her own video games!   With QuickGames, she can build all sorts of cool games, like:
+
+Action Adventures: Create your own Mario-like game and jump through levels! ➡️
+
+
+download
+
+photo_prints
+Brain Teasers: Challenge yourself with puzzles like Rubik's Cube and Sudoku!
+
+
+download
+
+photo_prints
+Music & Fun: Develop your musical skills with a Piano Tile game or race bikes! ️
+
+
+download
+
+photo_prints
+Learning is Fun: Make educational games like multiplication challenges!
+This is a work in progress, but we're having a blast learning together!
+
+Getting Started (For Kids!)
+
+We're working on a super easy guide to get you started making your own game  (coming soon!)   In the meantime, stay tuned!
+
+We'd love to see what you create! (Optional)
+
+If you're a kid who loves games and wants to try making your own, feel free to keep an eye on QuickGames!  (With your parent's permission, you can even share your creations with me!)
+
+Stay tuned for more!
+
+We're always adding new features to QuickGames.  Check back soon to see what you can create next! ✨
