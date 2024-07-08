@@ -56,19 +56,11 @@ This is QuickGames, a super fun and easy tool I created to help my daughter make
 Action Adventures: Create your own Mario-like game and jump through levels! ➡️
 
 
-download
-
 photo_prints
 Brain Teasers: Challenge yourself with puzzles like Rubik's Cube and Sudoku!
 
-
-download
-
-photo_prints
+Photo_prints
 Music & Fun: Develop your musical skills with a Piano Tile game or race bikes! ️
-
-
-download
 
 photo_prints
 Learning is Fun: Make educational games like multiplication challenges!
