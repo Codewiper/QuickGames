@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="digital-clock" class="fancy-clock">00:00</div>
+        <h1 class="fancy-heading">Multiplication Table Game</h1>
+        <div class="config">
+            <label for="table-number">Table Number (separate with commas):</label>
+            <input type="text" id="table-number" pattern="^\d+(?: \d+)*$" title="Enter table numbers separated by spaces" required>
+
+            <label for="game-time">Game Time (minutes):</label>
+            <input type="number" id="game-time" min="1" max="10">
+            <button id="start-game">Start Game</button>
+        </div>
+        <div id="game" class="hidden">
+            <div id="scores">
+                <div id="correct-score" class="score">Correct Answers: 0</div>
+                <div id="wrong-score" class="score">Wrong Answers: 0</div>
+            </div>
+            <div id="question-section">
+                <div id="question"></div>
+                <div id="options" class="options-grid"></div>
+            </div>
+        </div>
+        <div id="end-screen" class="hidden">
+            <h2>Game Over</h2>
+            <div id="final-score"></div>
+            <button id="restart-game">Return to Start</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
