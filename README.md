@@ -44,5 +44,9 @@ QuickGames
     <td>English and Math games</td>
     <td><a href="https://codewiper.github.io/prishasquizgame/main.html">English and Math games</a></td>
   </tr>
+  <tr>
+    <td>Multiplciation game</td>
+    <td><a href="https://codewiper.github.io/QuickGames/multiplicationgame.html">Multiplcation game</a></td>
+  </tr>
 </table>
 
