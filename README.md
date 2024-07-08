@@ -56,13 +56,17 @@ Welcome to QuickGames – a super fun and easy tool I created to help my daughte
 
 🎮 Action Adventures
 Create your own Mario-like game and jump through levels! ➡️
-
+![Actiongameicon](https://github.com/Codewiper/QuickGames/assets/169861327/5373e9ca-e368-4042-b51b-a78e4ebde1b0)
 
 🧩 Brain Teasers
 Challenge yourself with puzzles like Rubik's Cube and Sudoku!
+![Rubicscubegameicon](https://github.com/Codewiper/QuickGames/assets/169861327/b80e888a-0455-4b2c-adfa-bdd1a67ca387)
+
 
 🎵 Music & Fun
 Develop your musical skills with a Piano Tile game or race bikes! 🚴
+![pianogameicon](https://github.com/Codewiper/QuickGames/assets/169861327/243a055a-3626-43f8-971b-dd6f673ec986)
+
 
 📚 Learning is Fun
 Make educational games like multiplication challenges! This is a work in progress, but we're having a blast learning together!
